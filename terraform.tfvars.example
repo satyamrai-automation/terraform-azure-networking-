@@ -1,0 +1,100 @@
+virtual_networks = {
+  "vnet-dev" = {
+    name                = "vnet-rally-dev-centralindia"
+    location            = "centralindia"
+    resource_group_name = "rg-rally-dev-centralindia"
+    address_space       = ["10.30.0.0/16"]
+    tags = {
+      Environment = "dev"
+      Project     = "rally-tech"
+      ManagedBy   = "Terraform"
+    }
+  }
+}
+
+subnets = {
+  "snet-frontend" = {
+    name                = "snet-frontend"
+    resource_group_name = "rg-rally-dev-centralindia"
+    vnet_key            = "vnet-dev"
+    address_prefixes    = ["10.30.1.0/24"]
+  }
+  "snet-backend" = {
+    name                = "snet-backend"
+    resource_group_name = "rg-rally-dev-centralindia"
+    vnet_key            = "vnet-dev"
+    address_prefixes    = ["10.30.2.0/24"]
+  }
+  "snet-database" = {
+    name                = "snet-database"
+    resource_group_name = "rg-rally-dev-centralindia"
+    vnet_key            = "vnet-dev"
+    address_prefixes    = ["10.30.3.0/24"]
+    service_endpoints   = ["Microsoft.Sql", "Microsoft.Storage"]
+  }
+}
+
+network_security_groups = {
+  "nsg-frontend" = {
+    name                = "nsg-frontend-dev"
+    location            = "centralindia"
+    resource_group_name = "rg-rally-dev-centralindia"
+    tags = {
+      Environment = "dev"
+    }
+    security_rules = [
+      {
+        name                       = "allow-https"
+        priority                   = 100
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "443"
+        source_address_prefix      = "*"
+        destination_address_prefix = "*"
+      },
+      {
+        name                       = "allow-http"
+        priority                   = 110
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "80"
+        source_address_prefix      = "*"
+        destination_address_prefix = "*"
+      }
+    ]
+  }
+  "nsg-backend" = {
+    name                = "nsg-backend-dev"
+    location            = "centralindia"
+    resource_group_name = "rg-rally-dev-centralindia"
+    security_rules = [
+      {
+        name                       = "allow-frontend-inbound"
+        priority                   = 100
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "8080"
+        source_address_prefix      = "10.30.1.0/24"
+        destination_address_prefix = "10.30.2.0/24"
+      }
+    ]
+  }
+}
+
+# Attach NSGs to subnets
+subnet_nsg_associations = {
+  "assoc-frontend" = {
+    subnet_key = "snet-frontend"
+    nsg_key    = "nsg-frontend"
+  }
+  "assoc-backend" = {
+    subnet_key = "snet-backend"
+    nsg_key    = "nsg-backend"
+  }
+}
