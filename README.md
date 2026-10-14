@@ -28,7 +28,7 @@ This module consolidates the following Azure networking resources:
 
 ```hcl
 module "networking" {
-  source = "git::https://github.com/satyamrai-automation/terraform-azure-networking.git?ref=v1.0.0"
+  source = "git::https://github.com/satyamrai-automation/terraform-azure-networking-.git?ref=v1.0.0"
 
   virtual_networks = {
     "vnet-dev" = {
