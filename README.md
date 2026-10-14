@@ -26,59 +26,46 @@ This module consolidates the following Azure networking resources:
 
 ## 🚀 Consumption in Root Modules (`Rally-tech-infra`)
 
+### 1. In `environments/dev/main.tf`:
 ```hcl
 module "networking" {
   source = "git::https://github.com/satyamrai-automation/terraform-azure-networking-.git?ref=v1.0.0"
 
-  virtual_networks = {
-    "vnet-dev" = {
-      name                = "vnet-rally-dev-centralindia"
-      location            = "centralindia"
-      resource_group_name = module.governance.resource_group_names["rg-rally-dev"]
-      address_space       = ["10.30.0.0/16"]
-    }
-  }
+  virtual_networks                = var.virtual_networks
+  subnets                         = var.subnets
+  network_security_groups         = var.network_security_groups
+  subnet_nsg_associations         = var.subnet_nsg_associations
+  route_tables                    = var.route_tables
+  subnet_route_table_associations = var.subnet_route_table_associations
+  vnet_peerings                   = var.vnet_peerings
 
-  subnets = {
-    "snet-frontend" = {
-      name                = "snet-frontend"
-      resource_group_name = module.governance.resource_group_names["rg-rally-dev"]
-      vnet_key            = "vnet-dev"
-      address_prefixes    = ["10.30.1.0/24"]
-    }
-    "snet-backend" = {
-      name                = "snet-backend"
-      resource_group_name = module.governance.resource_group_names["rg-rally-dev"]
-      vnet_key            = "vnet-dev"
-      address_prefixes    = ["10.30.2.0/24"]
-    }
-  }
+  depends_on = [module.governance]
+}
+```
 
-  network_security_groups = {
-    "nsg-frontend" = {
-      name                = "nsg-frontend-dev"
-      location            = "centralindia"
-      resource_group_name = module.governance.resource_group_names["rg-rally-dev"]
-      security_rules = [
-        {
-          name                       = "allow-https"
-          priority                   = 100
-          direction                  = "Inbound"
-          access                     = "Allow"
-          protocol                   = "Tcp"
-          destination_port_range     = "443"
-          source_address_prefix      = "*"
-          destination_address_prefix = "*"
-        }
-      ]
-    }
+### 2. In `environments/dev/terraform.tfvars`:
+```hcl
+virtual_networks = {
+  "vnet-dev" = {
+    name                = "vnet-rally-dev-centralindia"
+    location            = "centralindia"
+    resource_group_name = "rg-rally-dev-centralindia"
+    address_space       = ["10.30.0.0/16"]
   }
+}
 
-  subnet_nsg_associations = {
-    "frontend" = {
-      subnet_key = "snet-frontend"
-      nsg_key    = "nsg-frontend"
-    }
+subnets = {
+  "snet-frontend" = {
+    name                = "snet-frontend"
+    resource_group_name = "rg-rally-dev-centralindia"
+    vnet_key            = "vnet-dev"
+    address_prefixes    = ["10.30.1.0/24"]
+  }
+  "snet-backend" = {
+    name                = "snet-backend"
+    resource_group_name = "rg-rally-dev-centralindia"
+    vnet_key            = "vnet-dev"
+    address_prefixes    = ["10.30.2.0/24"]
   }
 }
 ```
